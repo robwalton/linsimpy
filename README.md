@@ -1,7 +1,7 @@
 # linsimpy
 
 [Linda](https://en.wikipedia.org/wiki/Linda_(coordination_language)) process
-coordination on the [`pysim`](https://simpy.readthedocs.io) discrete event
+coordination on the [`simpy`](https://simpy.readthedocs.io) discrete event
 simulation framework.
 
 Linda is a long forgotten coordination language which at one point competed
