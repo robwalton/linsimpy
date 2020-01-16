@@ -16,7 +16,7 @@ is great for modelling natural systems.
 
 Requires:
 - python3+ (tested on 3.8 only to date)
-- [pysim](https://gitlab.com/team-simpy/simpy)
+- [simpy](https://gitlab.com/team-simpy/simpy)
 
 ## Installation
 Check it out:
