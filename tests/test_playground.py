@@ -2,6 +2,8 @@ import pytest
 import simpy
 
 
+# Not part of real code base! Just some experiments made while learning.
+
 @pytest.fixture()
 def env():
     return simpy.Environment()
