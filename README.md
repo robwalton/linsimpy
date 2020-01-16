@@ -89,8 +89,10 @@ Attribution-NonCommercial licences respectively. See LICENCE.md for details.
 
 - Add the non blocking rd and in commands
 - Consider API and encapsulation.
-    - Consider option to make TupleSpace extend `simpy.Environment` to get run() etc.
+    - Consider option to make TupleSpace extend rather than be composed from`simpy.Environment` to get run() etc. This is a bad idea as we might want to use class:`~simpy.rt.RealtimeEnvironment` that
+    schedules and executes events in real (e.g., wallclock) time.
     - Alternatively it suggest access via `ts.env`.
+    - Alternatively cope out useful methods, noting that many are just convenience factory methods, but also that [instructions](https://simpy.readthedocs.io/en/latest/topical_guides/monitoring.html#event-tracing) for patching Environment.step() to trace the time of processed events. Note that BaseEnvironment is not overidden by environment and just call run(). RealtimeEnvirnment extends Environment. CONCLUSION: if we should just use composition, and if we want to add tracing then we do so to the underlying Environment.
 
 
 

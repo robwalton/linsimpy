@@ -1,1 +1,1 @@
-from linsimpy.tuplespace import TupleSpace
+from linsimpy.tuplespace import TupleSpace, TupleSpaceEnvironment
