@@ -83,7 +83,7 @@ $ pytest
 ## Licensing & thanks
 
 The code and the documentation are released under the MIT and Creative Commons
-Attribution-NonCommercial licences respectively. See LICENCE.txt for details.
+Attribution-NonCommercial licences respectively. See LICENCE.md for details.
 
 ## TODO
 
