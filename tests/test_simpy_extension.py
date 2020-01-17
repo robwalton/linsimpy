@@ -15,7 +15,7 @@ def store(env):
     return ReadableFilterStore(env)
 
 
-def test_put(store:ReadableFilterStore, env):
+def test_put(store: ReadableFilterStore, env):
 
     def pem():
         yield store.put((2,))
@@ -50,5 +50,4 @@ def test_read_put_put(store: ReadableFilterStore, env: simpy.Environment):
 
     env.process(pem())
     env.run()
-    assert store.items == [(2,), (1,)]  # assert (1,) removed and (2,) not removed
-
+    assert store.items == [(2,), (1,)]  # check only (1,) removed

@@ -2,7 +2,7 @@ import types
 from typing import Tuple
 
 import simpy
-from simpy.events import (URGENT, NORMAL)
+from simpy.events import NORMAL
 
 from linsimpy.simpy import ReadableFilterStore
 
@@ -64,15 +64,25 @@ class TupleSpace(object):
 
     def eval(self, tup: Tuple):
         """Returns a simpy process which evaluates tuples with simpy style
-        generator methods describing the process as elements. Adds the tuple
+        generator describing the process as elements. Adds the tuple
         to the tuple-space when complete"""
+
+        # To avoid confusion
+        if isinstance(tup, types.GeneratorType):
+            raise ValueError("Iterable such as tuple or list expected, not"
+                             "generator. Try (generator,)!")
+
+        try:
+            iter(tup)
+        except TypeError:
+            raise ValueError(f"input must be a tuple (or list) not {type(tup)}")
 
         process_list = []
         for i, element in enumerate(tup):
             if isinstance(element, types.GeneratorType):
                 process_list.append((i, element))
         if not process_list:
-            raise TypeError('no process (in the form of a generator in input tuple')
+            raise TypeError('at least one generator expected in input tuple')
 
         def eval_process():
             assert len(process_list) == 1  # Only one element supported so far
@@ -81,6 +91,7 @@ class TupleSpace(object):
             tup_as_list = list(tup)
             tup_as_list[idx] = val
             yield self.out(tuple(tup_as_list))
+            return tuple(tup_as_list)
 
         return self.env.process(eval_process())
 
@@ -118,8 +129,8 @@ class TupleSpaceEnvironment(TupleSpace):
         raise Exception("Use eval() not process().")
 
     def timeout(self, delay, value=None):
-        """A :class:`~simpy.events.Event` that gets triggered after a *delay* has
-        passed.
+        """A :class:`~simpy.events.Event` that gets triggered after a *delay*
+        has passed.
 
         This event is automatically triggered when it is created.
 
@@ -138,33 +149,34 @@ class TupleSpaceEnvironment(TupleSpace):
          Every event is bound to an environment *env* and is initially not
          triggered. Events are scheduled for processing by the environment after
          they are triggered by either :meth:`succeed`, :meth:`fail` or
-         :meth:`trigger`. These methods also set the *ok* flag and the *value* of
-         the event.
+         :meth:`trigger`. These methods also set the *ok* flag and the *value*
+         of the event.
 
-         An event has a list of :attr:`callbacks`. A callback can be any callable.
-         Once an event gets processed, all callbacks will be invoked with the event
-         as the single argument. Callbacks can check if the event was successful by
-         examining *ok* and do further processing with the *value* it has produced.
+         An event has a list of :attr:`callbacks`. A callback can be any
+         callable. Once an event gets processed, all callbacks will be invoked
+         with the event as the single argument. Callbacks can check if the event
+         was successful by examining *ok* and do further processing with the
+         *value* it has produced.
 
-         Failed events are never silently ignored and will raise an exception upon
-         being processed. If a callback handles an exception, it must set
+         Failed events are never silently ignored and will raise an exception
+         upon being processed. If a callback handles an exception, it must set
          :attr:`defused` to ``True`` to prevent this.
 
-         This class also implements ``__and__()`` (``&``) and ``__or__()`` (``|``).
-         If you concatenate two events using one of these operators,
-         a :class:`Condition` event is generated that lets you wait for both or one
-         of them.
+         This class also implements ``__and__()`` (``&``) and ``__or__()``
+         (``|``). If you concatenate two events using one of these operators,
+         a :class:`Condition` event is generated that lets you wait for both or
+         one of them.
 
          """
         return self.env.event()
 
     def all_of(self, events):
         """A :class:`~simpy.events.Condition` event that is triggered if all of
-        a list of *events* have been successfully triggered. Fails immediately if
-        any of *events* failed.
+        a list of *events* have been successfully triggered. Fails immediately
+        if any of *events* failed.
 
         """
-        return self.env.all_of()
+        return self.env.all_of(events)
 
     def any_of(self, events):
         """A :class:`~simpy.events.Condition` event that is triggered if any of
@@ -172,7 +184,7 @@ class TupleSpaceEnvironment(TupleSpace):
         any of *events* failed.
 
         """
-        return self.env.any_of()
+        return self.env.any_of(events)
 
     def schedule(self, event, priority=NORMAL, delay=0):
         """Schedule an *event* with a given *priority* and a *delay*."""
@@ -206,7 +218,7 @@ class TupleSpaceEnvironment(TupleSpace):
           until the environment's time reaches *until*.
 
         """
-        return self.env.run()
+        return self.env.run(until)
 
     def exit(self, value=None):
         """Stop the current process, optionally providing a ``value``.

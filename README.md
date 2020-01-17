@@ -33,42 +33,52 @@ highlights that linsimpy needs a more clearly defined relationship with `simpy`.
 Running:
 ```python
 
-
-import simpy
 import linsimpy
-env = simpy.Environment()
-ts = linsimpy.TupleSpace(env)
+tse = linsimpy.TupleSpaceEnvironment()
 print()
 
 def producer():
-    yield env.timeout(1)
-    print(f"(1, 2) added at time {env.now}")
-    yield ts.out((1, 2))
+    yield tse.timeout(1)
+    print(f"(1, 2) added at time {tse.now}")
+    yield tse.out((1, 2))
 
-    yield env.timeout(1)
-    print(f"('three', 4) added at time {env.now}")
-    yield ts.out(('three', 4))
+    yield tse.timeout(1)
+    print(f"('three', 4) added at time {tse.now}")
+    yield tse.out(('three', 4))
+
+    return 'process can return something'
 
 def consumer():
-    val = yield ts.in_(('three', int))
-    print(f"{val} removed at time {env.now}")
+    val = yield tse.in_(('three', int))
+    print(f"{val} removed at time {tse.now}")
 
-    val = yield ts.in_((object, 2))
-    print(f"{val} removed at time {env.now}")
+    val = yield tse.in_((object, 2))
+    print(f"{val} removed at time {tse.now}")
 
-env.process(producer())
-env.process(consumer())
-env.run()
+tse.eval(('producer_process', producer()))
+tse.eval(('consumer_process', consumer()))
+tse.run()
+assert tse.now == 2
+print(tse.items)
 ```
 prints:
 ```
 (1, 2) added at time 1
 ('three', 4) added at time 2
 ('three', 4) removed at time 2
-(1, 2) removed at time 2  
+(1, 2) removed at time 2
+[('another tuple', 5, 6), ('producer_process', 'process can return something'), ('consumer_process', None)]
+
 ```
 
+## Monitoring
 
+If following simpy's [instructions] for patching Environment() to add event
+tracing, do so on the simpy.Environment instance wrapped by
+TupleSpaceEnvironment. This is done my passing a patched instance of
+Environment to TupleSpaceEnvironment during initiation.
+
+[instructions]: https://simpy.readthedocs.io/en/latest/topical_guides/monitoring.html#event-tracing
 
 ## Testing
 Running the tests requires the `pytest` package. 
@@ -80,19 +90,17 @@ $ pytest
 ```
 
 
-## Licensing & thanks
+## Licensing
 
 The code and the documentation are released under the MIT and Creative Commons
 Attribution-NonCommercial licences respectively. See LICENCE.md for details.
 
 ## TODO
 
+- Support eval with multiple generators
 - Add the non blocking rd and in commands
-- Consider API and encapsulation.
-    - Consider option to make TupleSpace extend rather than be composed from`simpy.Environment` to get run() etc. This is a bad idea as we might want to use class:`~simpy.rt.RealtimeEnvironment` that
-    schedules and executes events in real (e.g., wallclock) time.
-    - Alternatively it suggest access via `ts.env`.
-    - Alternatively cope out useful methods, noting that many are just convenience factory methods, but also that [instructions](https://simpy.readthedocs.io/en/latest/topical_guides/monitoring.html#event-tracing) for patching Environment.step() to trace the time of processed events. Note that BaseEnvironment is not overidden by environment and just call run(). RealtimeEnvirnment extends Environment. CONCLUSION: if we should just use composition, and if we want to add tracing then we do so to the underlying Environment.
+- Create RealtimeTupleSpaceEnvironment 
+
 
 
 

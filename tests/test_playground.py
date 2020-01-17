@@ -24,13 +24,14 @@ def test_value_from_process(env: simpy.Environment):
 
 def test_value_from_run_call_with_process(env: simpy.Environment):
     # Also works for events
-    run_val = env.run(env.process(delayed_42(env)))
+    proc = env.process(delayed_42(env))
+    run_val = env.run(proc)
     assert run_val == 42
 
 
 def test_value_from_subprocess(env: simpy.Environment):
 
-    def proc(env):
+    def proc():
         yield env.timeout(2)
         assert env.now == 2
         ret_val = yield env.process(delayed_42(env))
@@ -38,12 +39,8 @@ def test_value_from_subprocess(env: simpy.Environment):
         assert ret_val == 42
         return ret_val * 2
 
-    p = env.process(proc(env))
+    p = env.process(proc())
     run_val = env.run()
     assert run_val is None
     assert p.value == 84
     assert env.now == 3
-
-
-
-
