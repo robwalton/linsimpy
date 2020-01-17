@@ -1,6 +1,6 @@
-import simpy
-
 import pytest
+
+import simpy
 
 from linsimpy.simpy import ReadableFilterStore
 

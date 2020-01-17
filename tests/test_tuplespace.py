@@ -60,8 +60,7 @@ def test_out(tse):
     def pem():
         yield tse.out((2,))
         yield tse.out((1,))
-    tse.eval((pem(),))
-    tse.run()
+    tse.run(tse.eval((pem(),)))
     assert tse.items == [(2,), (1,), (None,)]  # where (None,) is left by eval
 
 
@@ -74,8 +73,7 @@ def test_out_out_in(tse):
         yield tse.out((1,))
         assert get_event.triggered  # assert (1,)  found
 
-    tse.eval((pem(),))
-    tse.run()
+    tse.run(tse.eval((pem(),)))
     assert tse.items == [(2,), (None,)]  # check only (1,) removed
 
 
@@ -86,8 +84,7 @@ def test_in_reads_just_one_tuple(tse):
         yield tse.out((1,))
         yield tse.out((1,))
 
-    tse.eval((pem(),))
-    tse.run()
+    tse.run(tse.eval((pem(),)))
     assert tse.items == [(1,), (None,)]  # check only (1,) removed
     assert not tse.active_process
 
@@ -99,8 +96,7 @@ def test_in_when_used_in_run_returns_tuple(tse):
     def pem():
         val = yield tse.in_((1,))
         return val
-    proc = tse.eval((pem(),))
-    assert tse.run(proc) == ((1,),)
+    assert tse.run(tse.eval((pem(),))) == ((1,),)
 
 
 def test_out_out_rd(tse):
@@ -112,8 +108,7 @@ def test_out_out_rd(tse):
         yield tse.out((1,))
         assert rd_event.triggered  # assert (1,)  found
 
-    tse.eval((pem(),))
-    tse.run()
+    tse.run(tse.eval((pem(),)))
     assert tse.items == [(2,), (1,), (None,)]  # check only (1,) removed
 
 
@@ -122,16 +117,31 @@ def delayed_42(tse):
     return value
 
 
+def delayed_24(tse):
+    value = yield tse.timeout(1, value=24)
+    return value
+
+
 def test_eval(tse):
 
     def mep():
-        tup = (1, delayed_42(tse))
-        yield tse.eval(tup)
+        yield tse.eval((1, delayed_42(tse)))
         assert tse.now == 1
         return 'mep done'
 
     assert tse.run(tse.eval((mep(),))) == ('mep done',)
     assert tse.items == [(1, 42), ('mep done',)]
+
+
+def test_eval_with_multiple_generators(tse):
+
+    def mep():
+        yield tse.eval(('one', delayed_42(tse), 2, delayed_24(tse)))
+        assert tse.now == 1  # should occur concurrently
+        return 'mep done'
+
+    assert tse.run(tse.eval((mep(),)))
+    assert tse.items == [('one', 42, 2, 24), ('mep done',)]
 
 
 def test_readme_example():

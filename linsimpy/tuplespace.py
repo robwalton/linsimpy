@@ -71,25 +71,35 @@ class TupleSpace(object):
         if isinstance(tup, types.GeneratorType):
             raise ValueError("Iterable such as tuple or list expected, not"
                              "generator. Try (generator,)!")
-
         try:
             iter(tup)
         except TypeError:
-            raise ValueError(f"input must be a tuple (or list) not {type(tup)}")
+            raise ValueError(f"Input must be a tuple (or list) not {type(tup)}")
 
-        process_list = []
+        generator_list = []
         for i, element in enumerate(tup):
             if isinstance(element, types.GeneratorType):
-                process_list.append((i, element))
-        if not process_list:
+                generator_list.append((i, element))
+        if not generator_list:
             raise TypeError('at least one generator expected in input tuple')
 
         def eval_process():
-            assert len(process_list) == 1  # Only one element supported so far
-            idx, proc = process_list[0]
-            val = yield self._env.process(proc)
             tup_as_list = list(tup)
-            tup_as_list[idx] = val
+            proc_list = []
+            idx_list = []
+            for idx, gen in generator_list:
+                proc = self._env.process(gen)
+                proc_list.append(proc)
+                idx_list.append(idx)
+
+            # ret = yield self._env.all_of(proc_list)
+            ret_list = (yield self._env.all_of(proc_list)).values()
+            ret_list = list(ret_list)
+            print(ret_list)
+
+            for idx, value in zip(idx_list, ret_list):
+                tup_as_list[idx] = value
+
             yield self.out(tuple(tup_as_list))
             return tuple(tup_as_list)
 
