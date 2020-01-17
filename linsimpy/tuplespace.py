@@ -49,17 +49,17 @@ class TupleSpace(object):
         """Returns a simpy event which writes a tuple"""
         return self._store.put(tuple(tup))
 
-    def in_(self, tup: Tuple):
+    def in_(self, pattern: Tuple):
         """Returns a simpy event which atomically reads and and removes a tuple,
         waiting if necessary.
         """
-        return self._store.get(TupleFilter(tup))
+        return self._store.get(TupleFilter(pattern))
 
-    def rd(self, tup: Tuple):
+    def rd(self, pattern: Tuple):
         """Returns a simpy event which non-destructively reads a tuple,
         waiting if necessary.
         """
-        filter_store_get_event = self._store.read(TupleFilter(tup))
+        filter_store_get_event = self._store.read(TupleFilter(pattern))
         return filter_store_get_event
 
     def eval(self, tup: Tuple):
@@ -95,7 +95,6 @@ class TupleSpace(object):
             # ret = yield self._env.all_of(proc_list)
             ret_list = (yield self._env.all_of(proc_list)).values()
             ret_list = list(ret_list)
-            print(ret_list)
 
             for idx, value in zip(idx_list, ret_list):
                 tup_as_list[idx] = value
@@ -105,21 +104,31 @@ class TupleSpace(object):
 
         return self._env.process(eval_process())
 
-    def inp(self, tup: Tuple):
+    def inp(self, pattern: Tuple):
         """Atomically reads and removes—consumes—a tuple, raising KeyError if
         not found. """
-        raise NotImplemented()
+        item = self._do_find(pattern)
+        self._store.items.remove(item)
+        return item
 
-    def rdp(self, tup: Tuple):
+    def rdp(self, pattern: Tuple):
         """Non-destructively reads a tuple, raising KeyError if not found."""
-        raise NotImplemented()
+        return self._do_find(pattern)
         # may have to inp and out without yielding control
+
+    def _do_find(self, pattern):
+        filter = TupleFilter(pattern)
+        for item in self._store.items:
+            if filter(item):
+                return item
+        raise KeyError(f"Tuple matching '{pattern}' not found")
 
     # store
 
     @property
     def items(self):
         """Return all tuples in store"""
+        # TODO: limit access to store to ensure only tuples are added
         return self._store.items
 
 
@@ -239,5 +248,4 @@ class TupleSpaceEnvironment(TupleSpace):
 
         """
         return self._env.exit(value)
-
 

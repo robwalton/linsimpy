@@ -74,10 +74,10 @@ def test_out_out_in(tse):
         assert get_event.triggered  # assert (1,)  found
 
     tse.run(tse.eval((pem(),)))
-    assert tse.items == [(2,), (None,)]  # check only (1,) removed
+    assert tse.items == [(2,), (None,)]
 
 
-def test_in_reads_just_one_tuple(tse):
+def test_in_removes_just_one_duplicated_tuple(tse):
 
     def pem():
         tse.in_((1, ))
@@ -109,7 +109,33 @@ def test_out_out_rd(tse):
         assert rd_event.triggered  # assert (1,)  found
 
     tse.run(tse.eval((pem(),)))
-    assert tse.items == [(2,), (1,), (None,)]  # check only (1,) removed
+    assert tse.items == [(2,), (1,), (None,)]
+
+
+def test_rdp(tse):
+    tse.items.append((1, 2))
+    assert tse.rdp((1, object)) == (1, 2)
+    assert tse.items == [(1, 2)]
+
+
+def test_rdp_raises_key_error(tse):
+    tse.items.append((1, 2))
+    with pytest.raises(KeyError):
+        tse.rdp((1, 'not in tuple-space'))
+    assert tse.items == [(1, 2)]
+
+
+def test_inp(tse):
+    tse.items.append((1, 2))
+    assert tse.inp((1, object)) == (1, 2)
+    assert tse.items == []
+
+
+def test_inp_raises_key_error(tse):
+    tse.items.append((1, 2))
+    with pytest.raises(KeyError):
+        tse.inp((1, 'not in tuple-space'))
+    assert tse.items == [(1, 2)]
 
 
 def delayed_42(tse):

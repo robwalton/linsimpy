@@ -97,9 +97,7 @@ Attribution-NonCommercial licences respectively. See LICENCE.md for details.
 
 ## TODO
 
-- Support eval with multiple generators
-- Add the non blocking rd and in commands
-- Create RealtimeTupleSpaceEnvironment 
+- Create RealtimeTupleSpaceEnvironment
 
 
 
