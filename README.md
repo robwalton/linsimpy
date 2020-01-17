@@ -7,8 +7,8 @@ simulation framework.
 Linda is a long forgotten coordination language which at one point competed
 conceptually with MPI. It is based on a bulletin-board like
 [tuple-space](https://en.wikipedia.org/wiki/Tuple_space), not unlike a NoSQL
-database in the style of associative memory but which also hosts processes. It
-does not stand up today's approaches for engineering distributed systems, but
+database in the style of associative memory, but which also hosts processes. It
+does not stand up to today's approaches for engineering distributed systems, but
 is great for modelling natural systems.  
 
 
