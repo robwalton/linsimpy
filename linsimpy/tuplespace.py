@@ -40,26 +40,26 @@ class TupleSpace(object):
     """
 
     def __init__(self, env: simpy.Environment = None):
-        self.env = env if env else simpy.Environment()
-        self.store = ReadableFilterStore(self.env)
+        self._env = env if env else simpy.Environment()
+        self._store = ReadableFilterStore(self._env)
 
     # Linda
 
     def out(self, tup: Tuple):
         """Returns a simpy event which writes a tuple"""
-        return self.store.put(tuple(tup))
+        return self._store.put(tuple(tup))
 
     def in_(self, tup: Tuple):
         """Returns a simpy event which atomically reads and and removes a tuple,
         waiting if necessary.
         """
-        return self.store.get(TupleFilter(tup))
+        return self._store.get(TupleFilter(tup))
 
     def rd(self, tup: Tuple):
         """Returns a simpy event which non-destructively reads a tuple,
         waiting if necessary.
         """
-        filter_store_get_event = self.store.read(TupleFilter(tup))
+        filter_store_get_event = self._store.read(TupleFilter(tup))
         return filter_store_get_event
 
     def eval(self, tup: Tuple):
@@ -87,13 +87,13 @@ class TupleSpace(object):
         def eval_process():
             assert len(process_list) == 1  # Only one element supported so far
             idx, proc = process_list[0]
-            val = yield self.env.process(proc)
+            val = yield self._env.process(proc)
             tup_as_list = list(tup)
             tup_as_list[idx] = val
             yield self.out(tuple(tup_as_list))
             return tuple(tup_as_list)
 
-        return self.env.process(eval_process())
+        return self._env.process(eval_process())
 
     def inp(self, tup: Tuple):
         """Atomically reads and removes—consumes—a tuple, raising KeyError if
@@ -110,7 +110,7 @@ class TupleSpace(object):
     @property
     def items(self):
         """Return all tuples in store"""
-        return self.store.items
+        return self._store.items
 
 
 class TupleSpaceEnvironment(TupleSpace):
@@ -118,12 +118,12 @@ class TupleSpaceEnvironment(TupleSpace):
     @property
     def now(self):
         """The current simulation time."""
-        return self.env.now
+        return self._env.now
 
     @property
     def active_process(self):
         """The currently active process of the environment."""
-        return self.env.active_process
+        return self._env.active_process
 
     def process(self, generator):
         raise Exception("Use eval() not process().")
@@ -135,7 +135,7 @@ class TupleSpaceEnvironment(TupleSpace):
         This event is automatically triggered when it is created.
 
         """
-        return self.env.timeout(delay, value)
+        return self._env.timeout(delay, value)
 
     def event(self):
         """An event that may happen at some point in time.
@@ -168,7 +168,7 @@ class TupleSpaceEnvironment(TupleSpace):
          one of them.
 
          """
-        return self.env.event()
+        return self._env.event()
 
     def all_of(self, events):
         """A :class:`~simpy.events.Condition` event that is triggered if all of
@@ -176,7 +176,7 @@ class TupleSpaceEnvironment(TupleSpace):
         if any of *events* failed.
 
         """
-        return self.env.all_of(events)
+        return self._env.all_of(events)
 
     def any_of(self, events):
         """A :class:`~simpy.events.Condition` event that is triggered if any of
@@ -184,16 +184,16 @@ class TupleSpaceEnvironment(TupleSpace):
         any of *events* failed.
 
         """
-        return self.env.any_of(events)
+        return self._env.any_of(events)
 
     def schedule(self, event, priority=NORMAL, delay=0):
         """Schedule an *event* with a given *priority* and a *delay*."""
-        return self.env.schedule(event, priority, delay)
+        return self._env.schedule(event, priority, delay)
 
     def peek(self):
         """Get the time of the next scheduled event. Return
         :data:`~simpy.core.Infinity` if there is no further event."""
-        return self.env.peek()
+        return self._env.peek()
 
     def step(self):
         """Process the next event.
@@ -201,7 +201,7 @@ class TupleSpaceEnvironment(TupleSpace):
         Raise an :exc:`EmptySchedule` if no further events are available.
 
         """
-        return self.env.step()
+        return self._env.step()
 
     def run(self, until=None):
         """Executes :meth:`step()` until the given criterion *until* is met.
@@ -218,7 +218,7 @@ class TupleSpaceEnvironment(TupleSpace):
           until the environment's time reaches *until*.
 
         """
-        return self.env.run(until)
+        return self._env.run(until)
 
     def exit(self, value=None):
         """Stop the current process, optionally providing a ``value``.
@@ -228,6 +228,6 @@ class TupleSpaceEnvironment(TupleSpace):
         a process.
 
         """
-        return self.env.exit(value)
+        return self._env.exit(value)
 
 
