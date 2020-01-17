@@ -21,8 +21,8 @@ Requires:
 ## Installation
 Check it out:
 ```bash
-$ git clone https://github.com/robwalton/lindes.git
-Cloning into 'lindes'...
+$ git clone https://github.com/robwalton/linsimpy.git
+Cloning into 'linsimpy'...
 ```
 
 ## Try it out
