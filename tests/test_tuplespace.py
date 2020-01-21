@@ -170,6 +170,12 @@ def test_eval_with_multiple_generators(tse):
     assert tse.items == [('one', 42, 2, 24), ('mep done',)]
 
 
+def test__str__(tse):
+    print()
+    tse.items.append(('a', 'b(\n  1,\n  2\n)', 'c'))
+    print(tse)
+
+
 def test_readme_example():
 
     import linsimpy
@@ -200,3 +206,4 @@ def test_readme_example():
     tse.run()
     assert tse.now == 2
     print(tse.items)
+

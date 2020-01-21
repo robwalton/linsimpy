@@ -1,3 +1,4 @@
+import textwrap
 import types
 from typing import Tuple
 
@@ -130,6 +131,29 @@ class TupleSpace(object):
         """Return all tuples in store"""
         # TODO: limit access to store to ensure only tuples are added
         return self._store.items
+
+    def __str__(self):
+        wrapper = textwrap.TextWrapper(
+            initial_indent='  ', subsequent_indent='  ', drop_whitespace=False,
+            replace_whitespace=False)
+        lines = []
+        for tup in self.items:
+            lines.append('(')
+            for field in tup:
+                # field_lines = wrapper.wrap(str(field))
+                field_lines = str(field).splitlines()
+                field_lines[-1] = field_lines[-1] + ','
+                lines.extend(['  ' + l for l in field_lines])
+            lines.append('),')
+        return '\n'.join(lines)
+
+"""
+(
+   field
+   field
+)
+"""
+
 
 
 class TupleSpaceEnvironment(TupleSpace):
