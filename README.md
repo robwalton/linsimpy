@@ -78,7 +78,7 @@ tracing, do so on the simpy.Environment instance wrapped by
 TupleSpaceEnvironment. This is done my passing a patched instance of
 Environment to TupleSpaceEnvironment during initiation.
 
-[instructions]: https://simpy.readthedocs.io/en/latest/topical_guides/monitoring.html#event-tracing
+
 
 ## Testing
 Running the tests requires the `pytest` package. 
@@ -97,9 +97,46 @@ Attribution-NonCommercial licences respectively. See LICENCE.md for details.
 
 ## TODO
 
+- Package up
+- Add instructions for setting random seed to guarantee order
+- Possibly allow predicate functions as elements of search patterns. Adds no functionality
+  but could help with conception, but does allow speed up if function calls are
+  long as they may not need to be evaluated. Could help in the future if we add
+  delays to gets().
+- Optimise tuple searching. It is currently O(n). Suggestions from [lindypy].
+  Wrap or extend Store of FilterStore to create TupleStore:
+  - Keep a dict of tuples indexed by id. On put() assign tuple an id and add
+    to this. (Note that this may require extension of Store rather than filterStore.)
+  - Keep a column_index dict of sets indexed by tuple length. On put() put id in appropriate
+    set.
+  - Keep structure X comprised of: a list indexed by tuple element index holding
+    dicts indexed by column value holding sets containing ids for each tuple.
+    On put() add an entry for each element of the tuple.
+  - on get(pattern) call onto a method that finds up to a certain number for
+    future proofing. This:
+    - return [] if length not length_index
+    - take set of candidates from length_index
+    - for each element in the pattern
+      - if type: compile a list of type checks for wildcards
+      - if iterable: optionally compile a list of predicate functions to test final candidates
+        with.
+      - else its a value:
+        - if value not in column_index return []
+        - trim the set of candidates by intersecting with set from structure X.
+        - return [] if candidates is empty
+    - return [] if candidates is empty (necessary?)
+    - for each candidate
+      - fetch the tuple from tuple_index
+      -
 - Create RealtimeTupleSpaceEnvironment
+- Create a production, rather than DSE, tuple-store that spawns new processes.
+  Possibly run on PyPy to get around GIL. It may be that going from Linda toys
+  to production that it would best to switch technology and/or coordination
+  paradigm
 
 
 
 
+[instructions]: https://simpy.readthedocs.io/en/latest/topical_guides/monitoring.html#event-tracing
+[lindypy]: (https://bitbucket.org/rfc1437/lindypy/src/default/lindypy/TupleSpace.py)
   
